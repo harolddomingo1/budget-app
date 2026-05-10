@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget App V2.9.3 - Offline PWA</title>
+  <style>
+    :root{
+      --bg:#f1f5f9;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
+      --dark:#020617;--good:#047857;--goodbg:#ecfdf5;--warn:#b45309;--warnbg:#fffbeb;--bad:#be123c;--badbg:#fff1f2;
+      --blue:#2563eb;--bluebg:#eff6ff;--shadow:0 12px 30px rgba(15,23,42,.08);--radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+    .app{max-width:1320px;margin:0 auto;padding:16px}
+    .hero{background:radial-gradient(circle at top right,#334155,var(--dark) 48%);color:#fff;border-radius:28px;padding:26px;box-shadow:var(--shadow);margin-bottom:16px}
+    .hero h1{margin:7px 0 10px;font-size:clamp(30px,5vw,56px);line-height:1;letter-spacing:-.05em}
+    .hero p{margin:0;color:#cbd5e1;max-width:880px;line-height:1.45}
+    .eyebrow{text-transform:uppercase;letter-spacing:.2em;font-size:12px;font-weight:900;color:#cbd5e1}
+    .grid{display:grid;gap:14px}.grid-12{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .card h2{margin:4px 0 0;font-size:22px;letter-spacing:-.02em}
+    .subtle{color:var(--muted);font-size:13px;line-height:1.45}
+    label{display:block;font-size:13px;font-weight:900;color:#334155;margin-bottom:6px}
+    input,select,button,textarea{font:inherit}
+    input,select,textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 11px;color:var(--ink);outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.18)}
+    button{border:none;border-radius:12px;padding:10px 13px;font-weight:900;cursor:pointer;transition:.15s ease;white-space:nowrap}
+    .btn{background:var(--dark);color:#fff}.btn:hover{background:#1e293b;transform:translateY(-1px)}
+    .btn2{background:#fff;color:#334155;border:1px solid var(--line)}.btn2:hover{background:#f8fafc}
+    .danger{background:var(--badbg);color:var(--bad);border:1px solid #fecdd3}
+    .danger:hover{background:#ffe4e6}
+    .formgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    .status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:900;color:#334155}
+    .dot{width:10px;height:10px;border-radius:999px;background:#94a3b8}.dot.good{background:var(--good)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}.dot.blue{background:var(--blue)}
+    .badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:950;border:1px solid var(--line);background:#fff;color:#334155}
+    .badge.good{background:var(--goodbg);border-color:#bbf7d0;color:var(--good)}
+    .badge.warn{background:var(--warnbg);border-color:#fde68a;color:var(--warn)}
+    .badge.bad{background:var(--badbg);border-color:#fecdd3;color:var(--bad)}
+    .badge.blue{background:var(--bluebg);border-color:#bfdbfe;color:var(--blue)}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff}
+    .stat.good{background:var(--goodbg);border-color:#bbf7d0}.stat.warn{background:var(--warnbg);border-color:#fde68a}.stat.bad{background:var(--badbg);border-color:#fecdd3}
+    .stat-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:950}.stat-value{font-size:clamp(22px,2.5vw,32px);font-weight:950;margin-top:8px;letter-spacing:-.04em}
+    .tablewrap{margin-top:14px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left;font-size:14px;vertical-align:middle}
+    th{background:#f8fafc;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:950}
+    td input,td select{padding:8px;border-radius:10px;min-width:110px}
+    .bartrack{height:24px;border-radius:999px;background:#e2e8f0;overflow:hidden;border:1px solid #cbd5e1;margin-top:12px}.barfill{height:100%;width:0%;background:linear-gradient(90deg,#020617,#475569);transition:.2s ease}
+    .barmeta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:900;margin-top:8px}
+    .chart{height:300px;display:grid;grid-template-columns:repeat(12,1fr);gap:7px;align-items:end;margin-top:12px;padding:8px;border:1px solid #f1f5f9;border-radius:16px;background:#fff}
+    .mcol{height:100%;display:grid;grid-template-rows:1fr auto;gap:8px}.pair{height:100%;display:grid;grid-template-columns:1fr 1fr;gap:3px;align-items:end;border-bottom:1px solid #cbd5e1}
+    .mini{border-radius:8px 8px 0 0;min-height:2px}.income{background:#0f172a}.expense{background:#94a3b8}.mlabel{text-align:center;color:var(--muted);font-size:11px;font-weight:900}
+    .pill{display:inline-block;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:900}.plus{background:var(--goodbg);color:var(--good)}.minus{background:var(--badbg);color:var(--bad)}
+    .banner{display:none;margin-top:12px;border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:14px;padding:12px;font-size:13px;line-height:1.45}
+    .banner.show{display:block}
+    .undo{display:none;margin-top:12px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:14px;padding:12px;font-size:13px}
+    .undo.show{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .action-section{border:1px solid var(--line);background:#f8fafc;border-radius:16px;padding:12px;margin-top:12px}
+    .action-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#64748b;font-weight:950;margin-bottom:8px}
+    .period-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-top:14px}
+    .period-controls{display:grid;grid-template-columns:1fr 1fr auto auto auto;gap:10px;align-items:end;margin-top:12px}
+    .small-note{font-size:12px;color:#64748b;line-height:1.4}
+    .month-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .month-mini{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:12px}
+    .month-mini b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:#64748b;margin-bottom:6px}
+    .month-mini span{font-size:22px;font-weight:950;color:#0f172a}
+    .month-mini.good{background:var(--goodbg);border-color:#bbf7d0}.month-mini.good span{color:var(--good)}
+    .month-mini.warn{background:var(--warnbg);border-color:#fde68a}.month-mini.warn span{color:var(--warn)}
+    .month-mini.bad{background:var(--badbg);border-color:#fecdd3}.month-mini.bad span{color:var(--bad)}
+    .category-bars{display:grid;gap:8px;margin-top:12px}
+    .cat-row{display:grid;grid-template-columns:110px 1fr 90px;gap:8px;align-items:center;font-size:13px}
+    .cat-track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+    .cat-fill{height:100%;border-radius:999px;background:#0f172a}
+    .pwa-banner{position:sticky;top:0;z-index:50;display:none;align-items:center;justify-content:space-between;gap:12px;background:#0f172a;color:#fff;border-radius:16px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+    .pwa-banner.show{display:flex}
+    .pwa-banner b{font-size:14px}
+    .pwa-banner span{color:#cbd5e1;font-size:13px}
+    .install-tip{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:14px;padding:12px;margin-top:12px;font-size:13px;line-height:1.45}
+    .diagnostics-panel{margin-top:14px}
+    .diagnostics-summary{display:flex;justify-content:space-between;gap:12px;align-items:center;cursor:pointer;list-style:none}
+    .diagnostics-summary::-webkit-details-marker{display:none}
+    .diag-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .diag-card{border:1px solid var(--line);border-radius:14px;background:#f8fafc;padding:12px}
+    .diag-card b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+    .debug-log{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:14px;padding:12px;overflow:auto;max-height:360px;margin-top:12px;font-size:12px}
+    .hidden{display:none}
+    @media(max-width:1000px){.grid-12{grid-template-columns:1fr}.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}.diag-grid{grid-template-columns:1fr}}
+    @media(max-width:720px){
+      .app{padding:10px}.hero{border-radius:20px;padding:20px}.stats,.formgrid{grid-template-columns:1fr}.chart{gap:3px}.mlabel{font-size:9px;transform:rotate(-35deg)}
+      .tablewrap{border:none;background:transparent;overflow:visible}
+      table{min-width:0;border-collapse:separate;border-spacing:0 12px}
+      thead{display:none}
+      tr{display:block;border:1px solid var(--line);border-radius:16px;background:#fff;padding:10px;box-shadow:0 8px 20px rgba(15,23,42,.06)}
+      td{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #f1f5f9;padding:10px 4px}
+      td:last-child{border-bottom:none}
+      td::before{content:attr(data-label);font-weight:950;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+      td input,td select{max-width:58%;min-width:0}
+      td[data-label="Action"]{justify-content:flex-end}
+      td[data-label="Action"]::before{display:none}
+    }
+  </style>
+
+  <meta name="theme-color" content="#020617"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="Budget App"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="manifest" href="./manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="./icons/icon-192.png"/>
+</head>
+<body>
+<main class="app">
+  <div class="pwa-banner" id="offlineBanner">
+    <div>
+      <b id="networkStatusTitle">Offline mode</b><br>
+      <span id="networkStatusText">Changes are saved locally. Push to Google Sheets when back online.</span>
+    </div>
+    <span class="badge warn" id="pendingOfflineBadge">Pending local changes</span>
+  </div>
+  <section class="hero">
+    <div class="eyebrow">Budget App V2.9.3</div>
+    <h1>Offline PWA Dashboard</h1>
+    <p>Daily finance tracking with an explicit Budget Period selector, verified Google Sheets sync, email reports, and installable offline access.</p>
+  </section>
+
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <div class="eyebrow" style="color:#64748b">Cloud connection</div>
+        <h2>Google Sheets sync setup</h2>
+        <p class="subtle">Paste your Apps Script Web App URL and private key once. Use Push/Pull manually for confidence, or turn on auto-save once everything passes QA.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+        <div class="status" id="syncStatus"><span class="dot" id="syncDot"></span><span id="syncText">Not connected</span></div>
+        <span class="badge warn" id="trustBadge">Local only</span>
+      </div>
+    </div>
+
+    <div class="formgrid">
+      <div><label for="scriptUrl">Apps Script /exec URL</label><input id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div><label for="secretKey">Private sync key</label><input id="secretKey" type="password" placeholder="Your SECRET_KEY"></div>
+      <div><label for="email">Backup email</label><input id="email" type="email" placeholder="Send Sheet copy to this email"></div>
+    </div>
+
+    <div class="action-section">
+      <div class="action-section-title">Daily Actions</div>
+      <div class="actions" style="margin-top:0;">
+        <button class="btn" id="pushCloud">Push to Google Sheets</button>
+        <button class="btn2" id="pullCloud">Pull from Google Sheets</button>
+        <button class="btn2" id="applySheetActions">Apply checked Sheet actions</button>
+        <label style="display:flex;align-items:center;gap:8px;margin:0;font-size:14px;"><input id="autoSync" type="checkbox" style="width:auto;"> Auto-save online changes</label>
+        <span class="subtle" id="lastSync">Last verified: never</span>
+      </div>
+    </div>
+
+    <div class="action-section">
+      <div class="action-section-title">Backup / Reports</div>
+      <div class="actions" style="margin-top:0;">
+        <button class="btn2" id="emailBudgetReport">Email Budget Report</button>
+        <button class="btn2" id="emailSheetCopy">Email Google Sheet Copy</button>
+        <span class="subtle">Report = snapshot + CSVs. Sheet copy = full workbook backup.</span>
+      </div>
+    </div>
+
+    <details class="action-section">
+      <summary class="action-section-title" style="cursor:pointer;">Diagnostics / Maintenance</summary>
+      <div class="actions">
+        <button class="btn2" id="runSyncQa">Run Sync QA</button>
+        <button class="btn2" id="testCloudWrite">Test Cloud Write</button>
+        <button class="btn2" id="checkCloud">Check Cloud Status</button>
+        <button class="btn2" id="resetTemplate">Reset Sheet Template Layout</button>
+      </div>
+    </details>
+
+    <div class="diag-card" style="margin-top:12px;">
+      <b>Sync QA Summary</b>
+      <span id="qaSummary">No QA run yet. Click Run Sync QA when you want to validate app ↔ Google Sheets.</span>
+    </div>
+    <div class="install-tip" id="installTip">
+      <b>Install tip:</b> Host this folder on GitHub Pages, then open the site on your phone and use Share → Add to Home Screen. Offline mode works after the first online load.
+    </div>
+  </section>
+
+  <section class="period-card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+      <div>
+        <div class="eyebrow" style="color:#64748b">Budget Period</div>
+        <h2 id="budgetPeriodTitle">Selected period</h2>
+        <p class="subtle" style="margin:6px 0 0;">This controls the monthly cash flow card, selected-month events, Google Sheets selected month summary, and email report snapshot.</p>
+      </div>
+      <span class="badge blue" id="periodBadge">Period selected</span>
+    </div>
+    <div class="period-controls">
+      <div>
+        <label for="operatingMonth">Operating month</label>
+        <select id="operatingMonth">
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+      </div>
+      <div>
+        <label for="operatingYear">Operating year</label>
+        <select id="operatingYear"></select>
+      </div>
+      <button class="btn2" id="prevPeriod" type="button">Previous</button>
+      <button class="btn2" id="thisPeriod" type="button">This Month</button>
+      <button class="btn2" id="nextPeriod" type="button">Next</button>
+    </div>
+    <div class="small-note" style="margin-top:10px;">No more guessing from device date only — the dashboard will show exactly which month and year you are viewing.</div>
+  </section>
+
+  <section class="grid-12" style="margin-top:14px">
+    <div class="card span-4">
+      <div class="eyebrow" style="color:#64748b">Income setup</div>
+      <h2>Paycheck settings</h2>
+      <div class="formgrid" style="grid-template-columns:1fr 1fr">
+        <div><label>Paycheck amount</label><input id="income" type="number" min="0" step="0.01"></div>
+        <div><label>Pay frequency</label><select id="payFrequency"><option value="weekly">Weekly</option><option value="biweekly">Biweekly</option><option value="semiMonthly">Semi-monthly</option><option value="monthly">Monthly</option></select></div>
+        <div><label>Next payday</label><input id="nextPayDate" type="date"></div>
+        <div><label>Starting cash</label><input id="startingBalance" type="number" step="0.01"></div>
+        <div><label>Forecast start</label><input id="forecastStart" type="date"></div>
+        <div><label>Forecast year</label><input id="forecastYear" type="number" min="2024" max="2035"></div>
+        <div><label>Safety buffer</label><input id="safetyBuffer" type="number" min="0" step="50"></div>
+        <div style="display:flex;align-items:end;"><button class="btn2" id="resetLocal" style="width:100%">Reset local</button></div>
+      </div>
+      <div id="validationBanner" class="banner"></div>
+    </div>
+
+    <div class="span-8 grid">
+      <div class="stats">
+        <div class="stat"><div class="stat-title">Safe to Spend Estimate</div><div class="stat-value" id="safeSpend">$0</div><div class="subtle">Next check leftover minus buffer</div></div>
+        <div class="stat"><div class="stat-title">Projected Income</div><div class="stat-value" id="statIncome">$0</div><div class="subtle">Through forecast year</div></div>
+        <div class="stat" id="endingCard"><div class="stat-title">Year-End Balance</div><div class="stat-value" id="statEnding">$0</div><div class="subtle">Starting cash included</div></div>
+        <div class="stat" id="lowestCard"><div class="stat-title">Lowest Balance</div><div class="stat-value" id="statLowest">$0</div><div class="subtle" id="bufferText">Buffer goal</div></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div><div class="eyebrow" style="color:#64748b">Paycheck view</div><h2>Next paycheck allocation</h2></div>
+          <div class="subtle" style="text-align:right"><div>Bills before next check: <b id="nextBills">$0</b></div><div>Estimated leftover: <b id="nextLeftover">$0</b></div></div>
+        </div>
+        <div class="bartrack"><div class="barfill" id="paycheckBar"></div></div>
+        <div class="barmeta"><span id="reservedPct">0% reserved</span><span id="availablePct">100% available</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+      <div><div class="eyebrow" style="color:#64748b">Expense template</div><h2>Dynamic expense rows</h2><p class="subtle" style="margin:6px 0 0;">Tip: inactive rows stay saved but do not affect the forecast.</p></div>
+      <div class="actions" style="margin-top:0">
+        <button class="btn2" id="addRow">Add row</button>
+        <button class="btn2" id="clearBlankRows">Clear blank rows</button>
+        <label style="display:flex;align-items:center;gap:8px;margin:0;font-size:14px;"><input id="showInactive" type="checkbox" style="width:auto;"> Show inactive</label>
+      </div>
+    </div>
+    <div id="undoBox" class="undo"><span id="undoText">Expense deleted.</span><button class="btn2" id="undoDelete">Undo delete</button></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Status</th><th>Name</th><th>Amount</th><th>Frequency</th><th>Due Date</th><th>Category</th><th>Active</th><th>Action</th></tr></thead>
+        <tbody id="expenseRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid-12" style="margin-top:14px">
+    <div class="card span-4">
+      <div class="eyebrow" style="color:#64748b">This month</div>
+      <h2 id="monthSummaryTitle">Monthly cash flow</h2>
+      <p class="subtle" id="monthSummaryStatus">Current month forecast summary.</p>
+
+      <div class="month-summary-grid">
+        <div class="month-mini good"><b>Income</b><span id="monthIncome">$0</span></div>
+        <div class="month-mini bad"><b>Total Expenses</b><span id="monthExpenses">$0</span></div>
+        <div class="month-mini" id="monthNetCard"><b>Net Cash Flow</b><span id="monthNet">$0</span></div>
+        <div class="month-mini" id="monthEndCard"><b>Month-End Balance</b><span id="monthEnding">$0</span></div>
+        <div class="month-mini"><b>Recurring / Planned</b><span id="monthFixed">$0</span></div>
+        <div class="month-mini"><b>One-Time / Variable</b><span id="monthVariable">$0</span></div>
+      </div>
+
+      <div class="subtle" style="margin-top:12px;"><b>Category totals this month</b></div>
+      <div class="category-bars" id="monthCategoryBars"></div>
+    </div>
+
+    <div class="card span-8">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+        <div>
+          <div class="eyebrow" style="color:#64748b">Upcoming</div>
+          <h2 id="eventTableTitle">Next cash flow events</h2>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin:0;font-size:14px;">
+          <input id="eventsSelectedMonthOnly" type="checkbox" style="width:auto;">
+          Selected month only
+        </label>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Date</th><th>Item</th><th>Category</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody id="eventRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:14px">
+    <div class="eyebrow" style="color:#64748b">Dashboard</div>
+    <h2>Monthly income vs expenses</h2>
+    <div class="subtle">Dark = income. Gray = expenses.</div>
+    <div class="chart" id="monthlyChart"></div>
+  </section>
+
+  <details class="card diagnostics-panel" id="diagnosticsPanel">
+    <summary class="diagnostics-summary">
+      <div>
+        <div class="eyebrow" style="color:#64748b">Diagnostics</div>
+        <h2 style="margin:4px 0 0;">Developer log</h2>
+        <p class="subtle" style="margin:6px 0 0;">Raw sync details are hidden here. Open only when something fails or you want the technical proof.</p>
+      </div>
+      <span class="status"><span class="dot" id="diagDot"></span><span id="diagStatus">No log yet</span></span>
+    </summary>
+    <div class="diag-grid">
+      <div class="diag-card"><b>Last action</b><span id="diagAction">None</span></div>
+      <div class="diag-card"><b>Last result</b><span id="diagResult">Not run</span></div>
+      <div class="diag-card"><b>Last hash</b><span id="diagHash">None</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn2" id="copyDebugLog" type="button">Copy Log</button>
+      <button class="btn2" id="clearDebugLog" type="button">Clear Log</button>
+      <button class="btn2" id="closeDiagnostics" type="button">Close Diagnostics</button>
+    </div>
+    <pre id="debugBox" class="debug-log">No diagnostics yet.</pre>
+  </details>
+
+  <section class="card" style="margin-top:14px">
+    <b>Daily workflow:</b> Edit in the HTML app → Push to Google Sheets → wait for “Cloud verified.” Use the This Month card to see income, expenses, net cash flow, category totals, and buffer risk. Email reports still include snapshot + forecast/expenses CSVs.
+  </section>
+
+  <form id="postForm" method="POST" target="postFrame" class="hidden">
+    <input name="action" id="postAction">
+    <input name="secretKey" id="postSecret">
+    <textarea name="stateBase64" id="postState"></textarea>
+    <input name="backupEmail" id="postBackupEmail">
+    <input name="reportEmail" id="postReportEmail">
+    <textarea name="snapshotBase64" id="postSnapshotBase64"></textarea>
+    <textarea name="forecastCsvBase64" id="postForecastCsvBase64"></textarea>
+    <textarea name="expensesCsvBase64" id="postExpensesCsvBase64"></textarea>
+  </form>
+  <iframe name="postFrame" class="hidden"></iframe>
+</main>
+
+<script>
+const APP_VERSION = "2.9.3";
+const STORAGE_KEY = "budget-app-main";
+const LEGACY_STORAGE_KEYS = ["budget-app-v2-7-daily-use-polish"];
+const todayISO = () => new Date().toISOString().slice(0,10);
+const nowForDefaults = new Date();
+const currentYear = nowForDefaults.getFullYear();
+const currentMonth = nowForDefaults.getMonth();
+const categories = ["Housing","Auto","Food","Debt","Savings","Utilities","Health","Fun","Other"];
+const frequencies = {weekly:"Weekly",biweekly:"Biweekly",monthly:"Monthly",yearly:"Yearly",oneTime:"One-time",perPaycheck:"Every paycheck"};
+const payLabels = {weekly:"Weekly",biweekly:"Biweekly",semiMonthly:"Semi-monthly",monthly:"Monthly"};
+
+const defaultState = {
+  private:{
+    scriptUrl:"",secretKey:"",email:"",autoSync:false,lastSync:"",lastVerifiedHash:"",
+    lastCloudUpdatedAt:"",pendingSaveId:"",pendingStateHash:"",pendingTemplateRows:[],showInactive:false,eventsSelectedMonthOnly:false
+  },
+  settings:{income:2051,payFrequency:"biweekly",nextPayDate:`${currentYear}-05-15`,startingBalance:0,forecastStart:todayISO(),forecastYear:currentYear,safetyBuffer:500,operatingMonth:currentMonth,operatingYear:currentYear},
+  expenses:[
+    {id:id(),name:"Rent",amount:800,frequency:"monthly",dueDate:`${currentYear}-05-29`,category:"Housing",active:true},
+    {id:id(),name:"Car Payment",amount:540,frequency:"monthly",dueDate:`${currentYear}-05-15`,category:"Auto",active:true},
+    {id:id(),name:"Discover Payment",amount:425,frequency:"monthly",dueDate:`${currentYear}-05-15`,category:"Debt",active:true}
+  ]
+};
+
+let state = loadLocal();
+let autoTimer = null;
+let suppressAutosave = false;
+let lastDeleted = null;
+let undoTimer = null;
+
+function id(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
+function deepMergeDefaults(saved){
+  return {
+    private:{...defaultState.private,...(saved.private||{})},
+    settings:{...defaultState.settings,...(saved.settings||{})},
+    expenses:Array.isArray(saved.expenses)?saved.expenses.map(e=>({active:true,...e})):JSON.parse(JSON.stringify(defaultState.expenses))
+  };
+}
+function loadLocal(){
+  const keys = [STORAGE_KEY, ...LEGACY_STORAGE_KEYS];
+  for (const key of keys) {
+    try{
+      const saved=JSON.parse(localStorage.getItem(key));
+      if(saved&&saved.settings&&Array.isArray(saved.expenses)) {
+        const merged = deepMergeDefaults(saved);
+        merged.private.appVersion = APP_VERSION;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    }catch(e){}
+  }
+  const fresh = JSON.parse(JSON.stringify(defaultState));
+  fresh.private.appVersion = APP_VERSION;
+  return fresh;
+}
+function saveLocal(sync=true){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  updateTrustBadge();
+  updateNetworkStatus();
+  if(sync&&!suppressAutosave) scheduleAutoSave();
+}
+function money(v,d=0){return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",minimumFractionDigits:d,maximumFractionDigits:d}).format(Number.isFinite(Number(v))?Number(v):0)}
+function parseDate(s){return new Date(`${s||todayISO()}T12:00:00`)}
+function toISO(d){const x=new Date(d);x.setHours(12,0,0,0);return x.toISOString().slice(0,10)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function addMonthsSafe(d,n){const x=new Date(d),day=x.getDate();x.setMonth(x.getMonth()+n,1);x.setDate(Math.min(day,new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));return x}
+function monthKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
+function monthLabel(k){const [y,m]=k.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("en-US",{month:"short"})}
+function enc(text){return btoa(unescape(encodeURIComponent(text)))}
+function normalizeName(value){return String(value||"").trim().toLowerCase()}
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve, ms))}
+
+function setStatus(text,type="warn"){
+  document.getElementById("syncText").textContent=text;
+  const dot=document.getElementById("syncDot"); dot.className="dot "+(type||"");
+}
+function setQaSummary(text, type="warn"){
+  document.getElementById("qaSummary").textContent = text;
+  const badge=document.getElementById("trustBadge");
+  if(type==="good" || type==="bad" || type==="warn" || type==="blue"){
+    badge.className = "badge " + type;
+  }
+}
+function stableBudgetState(){
+  return {
+    settings:state.settings,
+    expenses:state.expenses.map(e=>({
+      id:e.id||"",name:e.name||"",amount:Number(e.amount||0),frequency:e.frequency||"",
+      dueDate:e.dueDate||"",category:e.category||"",active:e.active!==false
+    }))
+  };
+}
+function hashString(text){
+  let h=2166136261;
+  for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}
+  return (h>>>0).toString(16).padStart(8,"0");
+}
+function currentStateHash(){return hashString(JSON.stringify(stableBudgetState()))}
+function hasUnsavedChanges(){return currentStateHash() !== (state.private.lastVerifiedHash||"")}
+function updateTrustBadge(){
+  const badge=document.getElementById("trustBadge");
+  if(!badge) return;
+  if(!canSync(false)){
+    badge.className="badge warn"; badge.textContent="Local only"; return;
+  }
+  if(hasUnsavedChanges()){
+    badge.className="badge warn"; badge.textContent="Unsaved changes"; return;
+  }
+  badge.className="badge good"; badge.textContent="Cloud verified";
+}
+function getConfig(){return {url:state.private.scriptUrl||"",key:state.private.secretKey||""}}
+function canSync(show=false){
+  const {url,key}=getConfig();
+  const ok=url.startsWith("https://script.google.com/") && Boolean(key);
+  if(!ok&&show) alert("Paste your Apps Script /exec URL and private key first.");
+  return ok;
+}
+
+function getOperatingPeriod(){
+  const month = Number(state.settings.operatingMonth ?? currentMonth);
+  const year = Number(state.settings.operatingYear ?? state.settings.forecastYear ?? currentYear);
+  return {month, year};
+}
+
+function periodKey(month, year){
+  return `${year}-${String(month + 1).padStart(2,"0")}`;
+}
+
+function periodTitle(month = getOperatingPeriod().month, year = getOperatingPeriod().year){
+  return new Date(year, month, 1, 12).toLocaleDateString("en-US", {month:"long", year:"numeric"});
+}
+
+function setOperatingPeriod(month, year){
+  let m = Number(month);
+  let y = Number(year);
+  while(m < 0){ m += 12; y -= 1; }
+  while(m > 11){ m -= 12; y += 1; }
+  state.settings.operatingMonth = m;
+  state.settings.operatingYear = y;
+  const monthEl = document.getElementById("operatingMonth");
+  const yearEl = document.getElementById("operatingYear");
+  if(monthEl) monthEl.value = String(m);
+  if(yearEl) yearEl.value = String(y);
+  saveLocal();
+  render();
+}
+
+function populateOperatingYears(){
+  const yearEl = document.getElementById("operatingYear");
+  if(!yearEl) return;
+  const selected = Number(state.settings.operatingYear || currentYear);
+  const start = Math.min(currentYear - 2, selected - 2);
+  const end = Math.max(currentYear + 6, selected + 2);
+  yearEl.innerHTML = "";
+  for(let y = start; y <= end; y++){
+    const option = document.createElement("option");
+    option.value = String(y);
+    option.textContent = String(y);
+    if(y === selected) option.selected = true;
+    yearEl.appendChild(option);
+  }
+}
+
+function getMonthBounds(month, year){
+  return {
+    start: new Date(year, month, 1, 12),
+    end: new Date(year, month + 1, 0, 23, 59, 59)
+  };
+}
+
+function buildPayDates(startDate,endDate,nextPayDate,frequency){
+  const start=parseDate(startDate),end=parseDate(endDate),next=parseDate(nextPayDate),dates=[];
+  if(frequency==="weekly"||frequency==="biweekly"){
+    const step=frequency==="weekly"?7:14; let c=new Date(next);
+    while(c>start)c=addDays(c,-step); while(c<start)c=addDays(c,step);
+    while(c<=end){dates.push(toISO(c));c=addDays(c,step)} return dates;
+  }
+  if(frequency==="monthly"){
+    let c=new Date(next); while(c>start)c=addMonthsSafe(c,-1); while(c<start)c=addMonthsSafe(c,1);
+    while(c<=end){dates.push(toISO(c));c=addMonthsSafe(c,1)} return dates;
+  }
+  if(frequency==="semiMonthly"){
+    const c=new Date(start.getFullYear(),start.getMonth(),1,12);
+    while(c<=end){[new Date(c.getFullYear(),c.getMonth(),15,12),new Date(c.getFullYear(),c.getMonth()+1,0,12)].forEach(d=>{if(d>=start&&d<=end)dates.push(toISO(d))});c.setMonth(c.getMonth()+1)}
+    return dates.sort();
+  }
+  return dates;
+}
+function buildExpenseDates(exp,startDate,endDate,payDates){
+  const start=parseDate(startDate),end=parseDate(endDate),first=parseDate(exp.dueDate||startDate),dates=[];
+  if(exp.frequency==="perPaycheck") return [...payDates];
+  if(exp.frequency==="oneTime") return first>=start&&first<=end?[toISO(first)]:[];
+  if(exp.frequency==="weekly"||exp.frequency==="biweekly"){
+    const step=exp.frequency==="weekly"?7:14; let c=new Date(first);
+    while(c>start)c=addDays(c,-step); while(c<start)c=addDays(c,step);
+    while(c<=end){dates.push(toISO(c));c=addDays(c,step)} return dates;
+  }
+  if(exp.frequency==="monthly"){
+    let c=new Date(first); while(c>start)c=addMonthsSafe(c,-1); while(c<start)c=addMonthsSafe(c,1);
+    while(c<=end){dates.push(toISO(c));c=addMonthsSafe(c,1)} return dates;
+  }
+  if(exp.frequency==="yearly"){
+    let c=new Date(first); while(c>start)c.setFullYear(c.getFullYear()-1); while(c<start)c.setFullYear(c.getFullYear()+1);
+    while(c<=end){dates.push(toISO(c));c.setFullYear(c.getFullYear()+1)} return dates;
+  }
+  return dates;
+}
+function forecast(){
+  const s=state.settings,endDate=`${s.forecastYear}-12-31`,payDates=buildPayDates(s.forecastStart,endDate,s.nextPayDate,s.payFrequency);
+  const events=payDates.map(date=>({date,type:"Income",name:"Paycheck",category:"Income",amount:Number(s.income)||0}));
+  state.expenses.filter(e=>e.active!==false).forEach(exp=>buildExpenseDates(exp,s.forecastStart,endDate,payDates).forEach(date=>events.push({date,type:"Expense",name:exp.name,category:exp.category,amount:-(Number(exp.amount)||0)})));
+  events.sort((a,b)=>a.date!==b.date?a.date.localeCompare(b.date):b.amount-a.amount);
+  let bal=Number(s.startingBalance)||0,low=bal;
+  const running=events.map(e=>{bal+=e.amount;low=Math.min(low,bal);return {...e,balance:bal}});
+  const monthlyMap=new Map();
+  for(let m=0;m<12;m++){const key=`${s.forecastYear}-${String(m+1).padStart(2,"0")}`;monthlyMap.set(key,{month:monthLabel(key),income:0,expenses:0,net:0,endingBalance:null})}
+  running.forEach(e=>{const key=monthKey(parseDate(e.date)); if(!monthlyMap.has(key))return; const r=monthlyMap.get(key); if(e.amount>=0)r.income+=e.amount; else r.expenses+=Math.abs(e.amount); r.net+=e.amount; r.endingBalance=e.balance;});
+  let last=Number(s.startingBalance)||0; const monthly=[...monthlyMap.values()].map(r=>{if(r.endingBalance===null)r.endingBalance=last; else last=r.endingBalance; return r;});
+  const catMap=new Map(); running.filter(e=>e.amount<0).forEach(e=>catMap.set(e.category,(catMap.get(e.category)||0)+Math.abs(e.amount)));
+  const categoryTotals=[...catMap.entries()].map(([category,amount])=>({category,amount})).sort((a,b)=>b.amount-a.amount);
+  const totalIncome=running.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0), totalExpenses=running.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+  const nextPay=running.find(e=>e.type==="Income"&&e.date>=s.forecastStart), nextNext=nextPay?running.find(e=>e.type==="Income"&&e.date>nextPay.date):null, windowEnd=nextNext?nextNext.date:endDate;
+  const nextBills=nextPay?running.filter(e=>e.type==="Expense"&&e.date>=nextPay.date&&e.date<windowEnd).reduce((s,e)=>s+Math.abs(e.amount),0):0;
+  return {events:running,monthly,categoryTotals,totalIncome,totalExpenses,net:totalIncome-totalExpenses,endingBalance:bal,lowestBalance:low,nextBills};
+}
+function cloudPayload(clientSaveId=""){
+  const f=forecast();
+  const stateHash=currentStateHash();
+  const selectedMonthSummary = getCurrentMonthSummary(f);
+  return {
+    version:"budget-v2.9.3-offline-pwa",
+    appVersion: APP_VERSION,
+    updatedAt:new Date().toISOString(),
+    clientSaveId,stateHash,
+    settings:state.settings,
+    expenses:state.expenses,
+    report:{
+      summary:{projectedIncome:f.totalIncome,projectedExpenses:f.totalExpenses,netForecast:f.net,yearEndBalance:f.endingBalance,lowestBalance:f.lowestBalance,safetyBuffer:state.settings.safetyBuffer},
+      selectedMonthSummary,
+      monthly:f.monthly,events:f.events,categoryTotals:f.categoryTotals
+    }
+  };
+}
+
+function callCloudGet(action, extra={}){
+  return new Promise((resolve,reject)=>{
+    if(!canSync(true)){reject(new Error("Missing Apps Script URL or private key."));return;}
+    const cb="budgetV27_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+    window[cb]=res=>{try{resolve(res);}finally{delete window[cb];script.remove();}};
+    const params=new URLSearchParams({action,secretKey:state.private.secretKey,callback:cb,t:String(Date.now()),...extra});
+    const script=document.createElement("script");
+    script.src=`${state.private.scriptUrl}?${params.toString()}`;
+    script.onerror=()=>{delete window[cb];script.remove();reject(new Error("Could not reach Apps Script. Check /exec URL, deployment access, and internet."));};
+    document.body.appendChild(script);
+  });
+}
+function postHiddenForm(action, payload){
+  document.getElementById("postForm").action=state.private.scriptUrl;
+  document.getElementById("postAction").value=action;
+  document.getElementById("postSecret").value=state.private.secretKey;
+  document.getElementById("postState").value=enc(JSON.stringify(payload));
+  const backupField = document.getElementById("postBackupEmail");
+  if (backupField) backupField.value = state.private.email || "";
+  document.getElementById("postForm").submit();
+}
+async function postToCloud(action="saveData", silent=false){
+  if(!navigator.onLine){
+    setStatus("Offline — saved locally only","warn");
+    setQaSummary("You are offline. Changes are saved locally and can be pushed when internet returns.","warn");
+    updateNetworkStatus();
+    return false;
+  }
+  if(!canSync(true))return false;
+
+  if(action==="resetTemplate"){
+    if(!confirm("Reset the Google Sheets template? This refreshes the template layout and examples. Existing dashboard/expenses remain, but template draft rows may be overwritten.")) return false;
+  }
+
+  const saveId=`${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const expectedHash=currentStateHash();
+  state.private.pendingSaveId=saveId;
+  state.private.pendingStateHash=expectedHash;
+  saveLocal(false);
+
+  const payload=action==="saveData" ? cloudPayload(saveId) : {clientSaveId:saveId,stateHash:expectedHash,updatedAt:new Date().toISOString()};
+  postHiddenForm(action, payload);
+  setStatus(action==="resetTemplate" ? "Resetting Sheet template..." : silent ? "Auto-saving..." : "Pushing to Google Sheets...", "warn");
+
+  return await verifyPush(action, saveId, expectedHash, silent);
+}
+async function verifyPush(action, saveId, expectedHash, silent=false){
+  let lastRes=null;
+  for(let attempt=1; attempt<=10; attempt++){
+    await sleep(1000);
+    try{
+      const res=await callCloudGet("debugInfo");
+      lastRes=res;
+      if(res && res.ok!==false){
+        if(action==="saveData" && res.clientSaveId===saveId && res.stateHash===expectedHash){
+          const stamp=new Date().toLocaleTimeString();
+          state.private.lastSync=stamp;
+          state.private.lastVerifiedHash=expectedHash;
+          state.private.pendingSaveId="";
+          state.private.pendingStateHash="";
+          state.private.lastCloudUpdatedAt=res.appStateUpdatedAt || "";
+          saveLocal(false);
+          setStatus("Verified: HTML matches Google Sheets","good");
+          setQaSummary("Verified: the exact HTML state was saved to Google Sheets.","good");
+          document.getElementById("lastSync").textContent=`Last verified: ${stamp}`;
+          showDebug({verification:"PASS", action, attempt, saveId, expectedHash, result:res},{action:"Verify push"});
+          if(state.private.pendingTemplateRows && state.private.pendingTemplateRows.length){
+            await markTemplateProcessed(state.private.pendingTemplateRows);
+            state.private.pendingTemplateRows=[];
+            saveLocal(false);
+          }
+          return true;
+        }
+        if(action==="resetTemplate" && Array.isArray(res.tabs) && res.tabs.includes("Expense Input Template")){
+          const stamp=new Date().toLocaleTimeString();
+          state.private.lastSync=stamp;
+          saveLocal(false);
+          setStatus("Sheet template reset and verified","good");
+          setQaSummary("Sheet template reset verified.","good");
+          document.getElementById("lastSync").textContent=`Last verified: ${stamp}`;
+          showDebug({verification:"PASS", action, attempt, result:res},{action:"Reset template"});
+          return true;
+        }
+      }
+    }catch(e){
+      lastRes={ok:false,error:e.message};
+    }
+    setStatus(`Verifying cloud save... ${attempt}/10`, "warn");
+  }
+
+  setStatus("Push not verified","bad");
+  setQaSummary("Push was not verified. Open Diagnostics and check Apps Script Executions.","bad");
+  showDebug({verification:"FAIL", action, expectedSaveId:saveId, expectedStateHash:expectedHash, lastResult:lastRes},{action:"Verify push", openPanel:true});
+  if(!silent) alert("Push was not verified after 10 seconds. It may have failed or Apps Script may be slow. Open Diagnostics and check Apps Script > Executions.");
+  return false;
+}
+function scheduleAutoSave(){
+  if(!state.private.autoSync||!canSync(false))return;
+  clearTimeout(autoTimer);
+  setStatus("Waiting to auto-save...","warn");
+  autoTimer=setTimeout(()=>postToCloud("saveData",true),1400);
+}
+async function pullFromCloud(){
+  if(!canSync(true))return;
+  if(hasUnsavedChanges()){
+    const proceed=confirm("You have unsaved local changes. Pulling from Google Sheets will overwrite the HTML app with the last cloud version. Press Cancel to stop and Push first.");
+    if(!proceed) return;
+  }
+  try{
+    setStatus("Pulling from Google Sheets...","warn");
+    const res=await callCloudGet("loadData");
+    if(!res||res.ok===false) throw new Error(res?.error||"Load failed");
+    const privateCopy={...state.private};
+    const loadedState=res.state || {};
+    state={private:privateCopy,settings:{...defaultState.settings,...(loadedState.settings||{})},expenses:Array.isArray(loadedState.expenses)?loadedState.expenses.map(e=>({active:true,...e})):[]};
+    suppressAutosave=true; saveLocal(false); suppressAutosave=false;
+    bindAll(); render();
+
+    const htmlHash=currentStateHash();
+    const sheetHash=loadedState.stateHash || "";
+    const stamp=new Date().toLocaleTimeString();
+    state.private.lastSync=stamp;
+    state.private.lastVerifiedHash=htmlHash;
+    state.private.lastCloudUpdatedAt=loadedState.updatedAt || "";
+    saveLocal(false);
+
+    if(sheetHash && sheetHash!==htmlHash){
+      setStatus("Pulled data, but hash mismatch warning","warn");
+      setQaSummary("Pull loaded, but hash mismatch warning. Open Diagnostics.","warn");
+      showDebug({warning:"Pulled data, but hash mismatch", htmlHash, sheetHash, loadedState},{action:"Pull warning", openPanel:true});
+    }else{
+      setStatus("Verified: HTML loaded latest Sheet state","good");
+      setQaSummary("Pull verified: HTML loaded the latest Google Sheets state.","good");
+      showDebug({message:"Pull verified", htmlHash, sheetHash:sheetHash||"No sheet hash stored yet"},{action:"Pull verified"});
+    }
+    document.getElementById("lastSync").textContent=`Last verified: ${stamp}`;
+  }catch(e){
+    setStatus("Pull failed","bad");
+    setQaSummary("Pull failed. Open Diagnostics for details.","bad");
+    showDebug(e.message||String(e),{action:"Pull failed",openPanel:true});
+    alert(e.message||"Could not pull from Google Sheets.");
+  }
+}
+
+function applySheetActions(rows){
+  let added=0, updated=0, deactivated=0, deleted=0, notFound=0, skippedPending=0;
+  const pendingSet=new Set(state.private.pendingTemplateRows||[]);
+
+  rows.forEach(row=>{
+    if(row.sheetRow && pendingSet.has(row.sheetRow)){
+      skippedPending++;
+      return;
+    }
+
+    const mode=String(row.mode||"add").trim().toLowerCase();
+    const matchName=normalizeName(row.matchName || row.name);
+    const existing=state.expenses.find(e=>normalizeName(e.name)===matchName);
+
+    if(mode==="update"){
+      if(existing){
+        if(row.name) existing.name=row.name;
+        if(row.amount !== "" && row.amount !== null && row.amount !== undefined && Number.isFinite(Number(row.amount))) existing.amount=Number(row.amount);
+        if(row.frequency) existing.frequency=row.frequency;
+        if(row.dueDate) existing.dueDate=row.dueDate;
+        if(row.category) existing.category=row.category;
+        existing.active=true;
+        updated++;
+      }else{notFound++;}
+    }else if(mode==="deactivate" || mode==="disable"){
+      if(existing){existing.active=false;deactivated++;}else{notFound++;}
+    }else if(mode==="delete"){
+      const before=state.expenses.length;
+      state.expenses=state.expenses.filter(e=>normalizeName(e.name)!==matchName);
+      if(state.expenses.length<before) deleted++; else notFound++;
+    }else{
+      state.expenses.push({id:id(),name:row.name||row.matchName||"New Expense",amount:Number(row.amount)||0,frequency:row.frequency||"monthly",dueDate:row.dueDate||todayISO(),category:row.category||"Other",active:true});
+      added++;
+    }
+
+    if(row.sheetRow && !pendingSet.has(row.sheetRow)){
+      state.private.pendingTemplateRows.push(row.sheetRow);
+      pendingSet.add(row.sheetRow);
+    }
+  });
+
+  saveLocal(true);
+  render();
+
+  const msg=`Applied Sheet actions — Added: ${added}, Updated: ${updated}, Deactivated: ${deactivated}, Deleted: ${deleted}, Not found: ${notFound}, Skipped pending: ${skippedPending}`;
+  setStatus(msg + " Push to verify cloud save.","good");
+  setQaSummary("Sheet actions applied locally. Push to Google Sheets to verify and mark rows processed.","warn");
+  showDebug({message:msg, pendingTemplateRows:state.private.pendingTemplateRows, rowsApplied:rows, currentStateHash:currentStateHash()},{action:"Apply Sheet actions"});
+}
+async function loadTemplateRows(){
+  if(!canSync(true))return;
+  try{
+    setStatus("Loading checked Sheet actions...","warn");
+    const res=await callCloudGet("loadTemplateActions");
+    if(!res||res.ok===false) throw new Error(res?.error||"Template load failed");
+    const rows=res.actions||[];
+    if(!rows.length){
+      alert("No checked unprocessed rows found in Expense Input Template.");
+      setStatus("No checked Sheet actions found","warn");
+      setQaSummary("No checked unprocessed Sheet actions found.","warn");
+      return;
+    }
+    applySheetActions(rows);
+  }catch(e){
+    setStatus("Sheet action load failed","bad");
+    setQaSummary("Sheet action load failed. Open Diagnostics for details.","bad");
+    showDebug(e.message||String(e),{action:"Sheet action load failed",openPanel:true});
+    alert(e.message||"Could not apply Sheet actions.");
+  }
+}
+async function markTemplateProcessed(rows){
+  try{
+    if(!rows || !rows.length) return;
+    const res=await callCloudGet("markTemplateProcessed",{rows:rows.join(",")});
+    showDebug({message:"Marked template rows processed", rows, result:res},{action:"Mark template processed"});
+  }catch(e){
+    setQaSummary("Cloud saved, but template rows were not marked processed. Open Diagnostics.","warn");
+    showDebug({warning:"Could not mark template rows processed", rows, error:e.message},{action:"Mark template processed",openPanel:true});
+  }
+}
+async function testCloudWrite(){
+  try{
+    setStatus("Testing cloud write...","warn");
+    const res=await callCloudGet("testWrite");
+    showDebug(res,{action:"Test Cloud Write"});
+    if(res.ok){setStatus("Test write worked","good");setQaSummary("Test write passed. Apps Script can write to the Sheet.","good");}
+    else{setStatus("Test write failed","bad");setQaSummary("Test write failed. Open Diagnostics.","bad");alert(res.error||"Test write failed.");}
+  }catch(e){setStatus("Test write failed","bad");setQaSummary("Test write failed. Open Diagnostics.","bad");showDebug(e.message,{action:"Test write failed",openPanel:true});alert(e.message);}
+}
+async function checkCloudStatus(){
+  try{
+    setStatus("Checking cloud status...","warn");
+    const res=await callCloudGet("debugInfo");
+    showDebug(res,{action:"Check Cloud Status"});
+    if(res.ok){setStatus("Cloud status loaded","good");setQaSummary(`Cloud status loaded. Sheet Rent amount: ${res.rentAmountInExpensesTab}`,"good");}
+    else{setStatus("Cloud check failed","bad");setQaSummary("Cloud check failed. Open Diagnostics.","bad");alert(res.error||"Cloud check failed.");}
+  }catch(e){setStatus("Cloud check failed","bad");setQaSummary("Cloud check failed. Open Diagnostics.","bad");showDebug(e.message,{action:"Cloud check failed",openPanel:true});alert(e.message);}
+}
+async function runSyncQa(){
+  const report=[];
+  try{
+    setStatus("Running Sync QA...","warn");
+    const test=await callCloudGet("testWrite");
+    report.push({step:"testWrite", result:test});
+    if(!test.ok) throw new Error(test.error||"Test write failed");
+
+    const saveOk=await postToCloud("saveData", true);
+    report.push({step:"pushVerify", ok:saveOk, expectedHash:currentStateHash()});
+    if(!saveOk) throw new Error("Push verification failed");
+
+    const pull=await callCloudGet("loadData");
+    report.push({step:"loadData", result:pull});
+    if(!pull.ok) throw new Error(pull.error||"Load data failed");
+
+    const sheetHash=pull.state?.stateHash || "";
+    const htmlHash=currentStateHash();
+    if(sheetHash && sheetHash !== htmlHash) throw new Error("Pulled state hash does not match current HTML hash");
+
+    setStatus("Sync QA passed","good");
+    setQaSummary("Sync QA passed — HTML and Google Sheets match.","good");
+    showDebug({syncQa:"PASS", report},{action:"Run Sync QA"});
+  }catch(e){
+    setStatus("Sync QA failed","bad");
+    setQaSummary("Sync QA failed. Open Diagnostics and check Apps Script Executions.","bad");
+    showDebug({syncQa:"FAIL", error:e.message||String(e), report},{action:"Run Sync QA",openPanel:true});
+    alert(e.message||"Sync QA failed.");
+  }
+}
+
+function csvEscape(value){
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function buildForecastCsv(){
+  const f = forecast();
+  const header = ["Date", "Type", "Name", "Category", "Amount", "Running Balance"];
+  const rows = f.events.map(e => [e.date, e.type, e.name, e.category, Number(e.amount || 0).toFixed(2), Number(e.balance || 0).toFixed(2)]);
+  return [header, ...rows].map(row => row.map(csvEscape).join(",")).join("\n");
+}
+
+function buildExpensesCsv(){
+  const header = ["Name", "Amount", "Frequency", "Due Date", "Category", "Active"];
+  const rows = state.expenses.map(e => [
+    e.name || "",
+    Number(e.amount || 0).toFixed(2),
+    e.frequency || "",
+    e.dueDate || "",
+    e.category || "",
+    e.active !== false ? "TRUE" : "FALSE"
+  ]);
+  return [header, ...rows].map(row => row.map(csvEscape).join(",")).join("\n");
+}
+
+function base64Unicode(text){
+  return btoa(unescape(encodeURIComponent(text)));
+}
+
+function svgEscape(text){
+  return String(text ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&apos;");
+}
+
+function truncateText(text, max=34){
+  const value = String(text ?? "");
+  return value.length > max ? value.slice(0, max - 1) + "…" : value;
+}
+
+function buildBudgetSnapshotSvg(){
+  const f = forecast();
+  const s = state.settings;
+  const width = 1400;
+  const height = 1900;
+  const buffer = Number(s.safetyBuffer || 0);
+  const safeSpend = (Number(s.income || 0) - f.nextBills) - buffer;
+  const status = f.lowestBalance < 0 ? "Projected negative balance" : f.lowestBalance < buffer ? "Below safety buffer" : "Above safety buffer";
+  const statusColor = f.lowestBalance < 0 ? "#be123c" : f.lowestBalance < buffer ? "#b45309" : "#047857";
+  const generated = new Date().toLocaleString();
+
+  const months = f.monthly || [];
+  const maxBar = Math.max(1, ...months.map(m => Math.max(Number(m.income || 0), Number(m.expenses || 0))));
+  const monthBars = months.map((m, i) => {
+    const x = 72 + i * 104;
+    const incomeH = Math.max(3, (Number(m.income || 0) / maxBar) * 210);
+    const expenseH = Math.max(3, (Number(m.expenses || 0) / maxBar) * 210);
+    return `
+      <rect x="${x}" y="${720 - incomeH}" width="38" height="${incomeH}" rx="8" fill="#0f172a"/>
+      <rect x="${x + 44}" y="${720 - expenseH}" width="38" height="${expenseH}" rx="8" fill="#94a3b8"/>
+      <text x="${x + 41}" y="755" text-anchor="middle" font-size="22" font-weight="900" fill="#64748b">${svgEscape(m.month)}</text>
+    `;
+  }).join("");
+
+  const balanceValues = months.map(m => Number(m.endingBalance || 0));
+  const minBalance = Math.min(0, ...balanceValues);
+  const maxBalance = Math.max(1, ...balanceValues);
+  const range = maxBalance - minBalance || 1;
+  const xFor = i => 72 + (i / Math.max(1, months.length - 1)) * 1190;
+  const yFor = v => 1055 - ((v - minBalance) / range) * 230;
+  const linePoints = months.map((m, i) => `${xFor(i)},${yFor(Number(m.endingBalance || 0))}`).join(" ");
+  const balanceDots = months.map((m, i) => {
+    const val = Number(m.endingBalance || 0);
+    return `<circle cx="${xFor(i)}" cy="${yFor(val)}" r="8" fill="${val < 0 ? "#be123c" : "#020617"}"/>`;
+  }).join("");
+
+  const upcoming = f.events.filter(e => e.date >= s.forecastStart).slice(0, 10).map((e, i) => {
+    const y = 1235 + i * 42;
+    const color = e.amount >= 0 ? "#047857" : "#be123c";
+    const sign = e.amount >= 0 ? "+" : "-";
+    return `
+      <text x="72" y="${y}" font-size="24" font-weight="900" fill="#0f172a">${svgEscape(e.date)}</text>
+      <text x="240" y="${y}" font-size="24" font-weight="800" fill="#334155">${svgEscape(truncateText(e.name, 34))}</text>
+      <text x="760" y="${y}" font-size="22" font-weight="800" fill="#64748b">${svgEscape(e.category)}</text>
+      <text x="1080" y="${y}" text-anchor="end" font-size="24" font-weight="950" fill="${color}">${sign}${svgEscape(money(Math.abs(e.amount),2))}</text>
+      <text x="1275" y="${y}" text-anchor="end" font-size="24" font-weight="950" fill="#0f172a">${svgEscape(money(e.balance,2))}</text>
+    `;
+  }).join("");
+
+  const topExpenses = [...state.expenses]
+    .filter(e => e.active !== false)
+    .sort((a,b) => Number(b.amount || 0) - Number(a.amount || 0))
+    .slice(0, 8)
+    .map((e, i) => {
+      const y = 1690 + i * 34;
+      return `
+        <text x="72" y="${y}" font-size="22" font-weight="850" fill="#0f172a">${svgEscape(truncateText(e.name, 38))}</text>
+        <text x="650" y="${y}" font-size="21" font-weight="800" fill="#64748b">${svgEscape(e.frequency || "")}</text>
+        <text x="930" y="${y}" font-size="21" font-weight="800" fill="#64748b">${svgEscape(e.category || "")}</text>
+        <text x="1275" y="${y}" text-anchor="end" font-size="22" font-weight="950" fill="#0f172a">${svgEscape(money(e.amount,2))}</text>
+      `;
+    }).join("");
+
+  function statCard(x, y, w, title, value, sub, color="#020617", fill="#ffffff"){
+    return `
+      <rect x="${x}" y="${y}" width="${w}" height="150" rx="24" fill="${fill}" stroke="#e2e8f0"/>
+      <text x="${x+28}" y="${y+48}" font-size="19" font-weight="950" fill="#64748b" letter-spacing="2">${svgEscape(title)}</text>
+      <text x="${x+28}" y="${y+95}" font-size="36" font-weight="950" fill="${color}">${svgEscape(value)}</text>
+      <text x="${x+28}" y="${y+128}" font-size="20" font-weight="750" fill="#64748b">${svgEscape(sub)}</text>
+    `;
+  }
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <rect width="${width}" height="${height}" fill="#f1f5f9"/>
+      <rect x="36" y="30" width="1328" height="1840" rx="34" fill="#ffffff" stroke="#e2e8f0"/>
+      <rect x="36" y="30" width="1328" height="180" rx="34" fill="#020617"/>
+      <text x="72" y="95" font-size="46" font-weight="950" fill="#ffffff">Budget Dashboard Snapshot</text>
+      <text x="72" y="145" font-size="24" font-weight="800" fill="#cbd5e1">Generated ${svgEscape(generated)} • Budget Period ${svgEscape(periodTitle())}</text>
+
+      ${statCard(72,250,290,"SAFE TO SPEND",money(safeSpend,2),"until next check",safeSpend>=0?"#047857":"#be123c",safeSpend>=0?"#ecfdf5":"#fff1f2")}
+      ${statCard(390,250,290,"INCOME",money(f.totalIncome),"projected","#020617")}
+      ${statCard(708,250,290,"EXPENSES",money(f.totalExpenses),"projected","#020617")}
+      ${statCard(1026,250,290,"YEAR END",money(f.endingBalance),"projected",f.endingBalance>=0?"#047857":"#be123c",f.endingBalance>=0?"#ecfdf5":"#fff1f2")}
+
+      <rect x="72" y="430" width="1244" height="92" rx="22" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="100" y="466" font-size="22" font-weight="950" fill="#64748b">CASH STATUS</text>
+      <text x="100" y="505" font-size="30" font-weight="950" fill="${statusColor}">${svgEscape(status)}</text>
+      <text x="720" y="505" font-size="25" font-weight="900" fill="#334155">Lowest Balance: ${svgEscape(money(f.lowestBalance,2))} • Buffer: ${svgEscape(money(buffer,2))}</text>
+
+      <text x="72" y="590" font-size="32" font-weight="950" fill="#020617">Monthly Income vs Expenses</text>
+      <text x="72" y="625" font-size="20" font-weight="850" fill="#64748b">Dark = income • Gray = expenses</text>
+      ${monthBars}
+      <line x1="72" y1="720" x2="1315" y2="720" stroke="#cbd5e1" stroke-width="3"/>
+
+      <text x="72" y="820" font-size="32" font-weight="950" fill="#020617">Month-End Balance Trend</text>
+      <line x1="72" y1="${yFor(0)}" x2="1262" y2="${yFor(0)}" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="8 8"/>
+      <polyline points="${linePoints}" fill="none" stroke="#020617" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      ${balanceDots}
+
+      <text x="72" y="1170" font-size="32" font-weight="950" fill="#020617">Next Cash Flow Events</text>
+      <text x="72" y="1205" font-size="19" font-weight="850" fill="#64748b">Date</text>
+      <text x="240" y="1205" font-size="19" font-weight="850" fill="#64748b">Item</text>
+      <text x="760" y="1205" font-size="19" font-weight="850" fill="#64748b">Category</text>
+      <text x="1080" y="1205" text-anchor="end" font-size="19" font-weight="850" fill="#64748b">Amount</text>
+      <text x="1275" y="1205" text-anchor="end" font-size="19" font-weight="850" fill="#64748b">Balance</text>
+      ${upcoming}
+
+      <text x="72" y="1635" font-size="32" font-weight="950" fill="#020617">Top Active Expense Rows</text>
+      <text x="72" y="1665" font-size="19" font-weight="850" fill="#64748b">Name</text>
+      <text x="650" y="1665" font-size="19" font-weight="850" fill="#64748b">Frequency</text>
+      <text x="930" y="1665" font-size="19" font-weight="850" fill="#64748b">Category</text>
+      <text x="1275" y="1665" text-anchor="end" font-size="19" font-weight="850" fill="#64748b">Amount</text>
+      ${topExpenses}
+
+      <text x="72" y="1840" font-size="18" font-weight="750" fill="#94a3b8">Budget App V2.9.3 • Dashboard snapshot optimized for email readability</text>
+    </svg>
+  `;
+}
+
+function buildSnapshotPngBase64(){
+  return new Promise((resolve, reject) => {
+    const svg = buildBudgetSnapshotSvg();
+    const svgBlob = new Blob([svg], {type:"image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1400;
+      canvas.height = 1900;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/png").split(",")[1]);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not render dashboard snapshot."));
+    };
+    img.src = url;
+  });
+}
+
+async function emailBudgetReport(){
+  if(!canSync(true)) return;
+  if(hasUnsavedChanges() && !confirm("You have unsaved HTML changes. Push to Google Sheets first for the cleanest report. Email report anyway?")) return;
+  const email = (state.private.email || "").trim();
+  if(!email){
+    alert("Enter your Backup email first.");
+    return;
+  }
+
+  try{
+    setStatus("Building budget report email...","warn");
+    setQaSummary("Generating a clean dashboard snapshot and CSV report files.","blue");
+
+    const snapshotBase64 = await buildSnapshotPngBase64();
+    const forecastCsvBase64 = base64Unicode(buildForecastCsv());
+    const expensesCsvBase64 = base64Unicode(buildExpensesCsv());
+    const payload = cloudPayload(`report-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+    document.getElementById("postForm").action=state.private.scriptUrl;
+    document.getElementById("postAction").value="sendBudgetReport";
+    document.getElementById("postSecret").value=state.private.secretKey;
+    document.getElementById("postState").value=enc(JSON.stringify(payload));
+    document.getElementById("postBackupEmail").value=email;
+    document.getElementById("postReportEmail").value=email;
+    document.getElementById("postSnapshotBase64").value=snapshotBase64;
+    document.getElementById("postForecastCsvBase64").value=forecastCsvBase64;
+    document.getElementById("postExpensesCsvBase64").value=expensesCsvBase64;
+    document.getElementById("postForm").submit();
+
+    setStatus("Budget report email submitted","good");
+    setQaSummary(`Budget report submitted to ${email}. Check inbox and Gmail Sent folder.`, "good");
+    showDebug({message:"Budget report email submitted", to: email, snapshot:"budget_dashboard_snapshot.png", attachments:["budget_forecast.csv","budget_expenses.csv"]}, {action:"Email Budget Report"});
+    alert("Budget report submitted. Check your inbox and Gmail Sent folder.");
+  }catch(e){
+    setStatus("Budget report email failed","bad");
+    setQaSummary("Budget report email failed. Open Diagnostics for details.","bad");
+    showDebug(e.message || String(e), {action:"Email Budget Report failed", openPanel:true});
+    alert(e.message || "Could not email budget report.");
+  }
+}
+
+async function emailGoogleSheetCopy(){
+  if(!canSync(true)) return;
+  if(hasUnsavedChanges() && !confirm("You have unsaved HTML changes. Push to Google Sheets first for the cleanest workbook backup. Email Sheet copy anyway?")) return;
+  const email = (state.private.email || "").trim();
+  if(!email){
+    alert("Enter your Backup email first.");
+    return;
+  }
+
+  try{
+    setStatus("Sending Google Sheet copy...","warn");
+    const res = await callCloudGet("emailSheetCopy", {to: email});
+    showDebug(res, {action:"Email Google Sheet Copy"});
+    if(res && res.ok){
+      setStatus("Google Sheet copy emailed","good");
+      setQaSummary(`Google Sheet copy emailed to ${email}. Check inbox and Sent folder.`, "good");
+      alert("Google Sheet copy sent. Check your inbox and Gmail Sent folder.");
+    }else{
+      throw new Error(res?.error || "Email failed.");
+    }
+  }catch(e){
+    setStatus("Email Sheet copy failed","bad");
+    setQaSummary("Email Sheet copy failed. Open Diagnostics for details.","bad");
+    showDebug(e.message || String(e), {action:"Email Sheet copy failed", openPanel:true});
+    alert(e.message || "Could not email Google Sheet copy.");
+  }
+}
+
+function updateNetworkStatus(){
+  const banner = document.getElementById("offlineBanner");
+  const title = document.getElementById("networkStatusTitle");
+  const text = document.getElementById("networkStatusText");
+  const pending = document.getElementById("pendingOfflineBadge");
+  if(!banner || !title || !text || !pending) return;
+
+  const offline = !navigator.onLine;
+  const unsaved = hasUnsavedChanges();
+
+  if(offline){
+    banner.className = "pwa-banner show";
+    title.textContent = "Offline mode";
+    text.textContent = "Changes are saved locally. Push to Google Sheets when you are back online.";
+    pending.className = "badge warn";
+    pending.textContent = unsaved ? "Pending local changes" : "No pending changes";
+  }else if(unsaved){
+    banner.className = "pwa-banner show";
+    title.textContent = "Online with unsaved changes";
+    text.textContent = "You are online. Push to Google Sheets when you want cloud backup.";
+    pending.className = "badge blue";
+    pending.textContent = "Ready to sync";
+  }else{
+    banner.className = "pwa-banner";
+  }
+}
+
+function registerServiceWorker(){
+  if(!("serviceWorker" in navigator)){
+    showDebug({pwa:"Service workers are not supported in this browser."}, {action:"PWA support"});
+    return;
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(reg => {
+        showDebug({pwa:"Service worker registered", scope:reg.scope}, {action:"PWA install"});
+      })
+      .catch(err => {
+        showDebug({pwa:"Service worker registration failed", error:err.message || String(err)}, {action:"PWA install", openPanel:true});
+      });
+  });
+}
+
+function bindAll(){
+  populateOperatingYears();
+  ["scriptUrl","secretKey","email","autoSync"].forEach(k=>{
+    const el=document.getElementById(k); if(!el)return;
+    if(el.type==="checkbox") el.checked=!!state.private[k]; else el.value=state.private[k]||"";
+    el.oninput=el.onchange=()=>{
+      state.private[k]=el.type==="checkbox"?el.checked:el.value.trim();
+      saveLocal(false);
+      setStatus(canSync(false)?"Connected":"Not connected",canSync(false)?"good":"warn");
+      updateTrustBadge();
+    };
+  });
+  document.getElementById("showInactive").checked=!!state.private.showInactive;
+  document.getElementById("showInactive").onchange=()=>{
+    state.private.showInactive=document.getElementById("showInactive").checked;
+    saveLocal(false);
+    render();
+  };
+
+  const eventsFilter = document.getElementById("eventsSelectedMonthOnly");
+  if(eventsFilter){
+    eventsFilter.checked=!!state.private.eventsSelectedMonthOnly;
+    eventsFilter.onchange=()=>{
+      state.private.eventsSelectedMonthOnly=eventsFilter.checked;
+      saveLocal(false);
+      render();
+    };
+  }
+
+  const opMonth = document.getElementById("operatingMonth");
+  const opYear = document.getElementById("operatingYear");
+  if(opMonth){
+    opMonth.value=String(state.settings.operatingMonth ?? currentMonth);
+    opMonth.onchange=()=>setOperatingPeriod(Number(opMonth.value), Number(state.settings.operatingYear || currentYear));
+  }
+  if(opYear){
+    opYear.value=String(state.settings.operatingYear || currentYear);
+    opYear.onchange=()=>setOperatingPeriod(Number(state.settings.operatingMonth ?? currentMonth), Number(opYear.value));
+  }
+  Object.keys(state.settings).forEach(k=>{
+    const el=document.getElementById(k); if(!el)return;
+    el.value=state.settings[k];
+    el.oninput=()=>{
+      const numeric=["income","startingBalance","forecastYear","safetyBuffer"].includes(k);
+      state.settings[k]=numeric?Number(el.value):el.value;
+      saveLocal();
+      render();
+    };
+  });
+  document.getElementById("lastSync").textContent=`Last verified: ${state.private.lastSync||"never"}`;
+  setStatus(canSync(false)?"Connected":"Not connected",canSync(false)?"good":"warn");
+  updateTrustBadge();
+}
+function escapeHtml(t){const d=document.createElement("div");d.textContent=t??"";return d.innerHTML}
+function renderValidation(){
+  const messages=[];
+  const s=state.settings;
+  if(!s.forecastStart || !s.nextPayDate) messages.push("Forecast start and next payday are required.");
+  if(Number(s.forecastYear) < new Date(parseDate(s.forecastStart)).getFullYear()) messages.push("Forecast year is before the forecast start year.");
+  if(parseDate(s.forecastStart) > parseDate(`${s.forecastYear}-12-31`)) messages.push("Forecast start is after the selected forecast year.");
+  const badRows=state.expenses.filter(e=>(!String(e.name||"").trim() && Number(e.amount)>0) || (String(e.name||"").trim() && (!Number.isFinite(Number(e.amount)) || Number(e.amount)<0)));
+  if(badRows.length) messages.push(`${badRows.length} expense row(s) need a valid name and amount.`);
+  const banner=document.getElementById("validationBanner");
+  if(messages.length){
+    banner.className="banner show";
+    banner.innerHTML="<b>Needs attention:</b><br>" + messages.map(m=>"• "+escapeHtml(m)).join("<br>");
+  }else{
+    banner.className="banner";
+    banner.textContent="";
+  }
+}
+function renderExpenseRows(){
+  const tbody=document.getElementById("expenseRows"); tbody.innerHTML="";
+  const rows=state.private.showInactive ? state.expenses : state.expenses.filter(e=>e.active!==false);
+  rows.forEach(exp=>{
+    const isActive=exp.active!==false;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td data-label="Status"><span class="badge ${isActive?"good":"warn"}">${isActive?"Active":"Inactive"}</span></td>
+      <td data-label="Name"><input value="${escapeHtml(exp.name)}" data-id="${exp.id}" data-field="name"></td>
+      <td data-label="Amount"><input type="number" min="0" step="0.01" value="${exp.amount}" data-id="${exp.id}" data-field="amount"></td>
+      <td data-label="Frequency"><select data-id="${exp.id}" data-field="frequency">${Object.entries(frequencies).map(([v,l])=>`<option value="${v}" ${exp.frequency===v?"selected":""}>${l}</option>`).join("")}</select></td>
+      <td data-label="Due Date"><input type="date" value="${exp.dueDate||todayISO()}" data-id="${exp.id}" data-field="dueDate"></td>
+      <td data-label="Category"><select data-id="${exp.id}" data-field="category">${categories.map(c=>`<option ${exp.category===c?"selected":""}>${c}</option>`).join("")}</select></td>
+      <td data-label="Active"><input type="checkbox" style="width:auto" ${isActive?"checked":""} data-id="${exp.id}" data-field="active"></td>
+      <td data-label="Action"><button class="danger" data-delete="${exp.id}">Delete</button></td>`;
+    tr.querySelectorAll("[data-field]").forEach(input=>input.addEventListener("change",()=>updateExpense(input)));
+    tr.querySelector("[data-delete]").onclick=()=>deleteExpense(exp.id);
+    tbody.appendChild(tr);
+  });
+}
+function updateExpense(input){
+  const exp=state.expenses.find(e=>e.id===input.dataset.id); if(!exp)return;
+  const f=input.dataset.field;
+  exp[f]=f==="amount"?Number(input.value):f==="active"?input.checked:input.value;
+  saveLocal(); render();
+}
+function deleteExpense(expId){
+  const index=state.expenses.findIndex(e=>e.id===expId);
+  if(index<0) return;
+  const [deleted]=state.expenses.splice(index,1);
+  lastDeleted={expense:deleted,index};
+  saveLocal(); render();
+  const undoBox=document.getElementById("undoBox");
+  document.getElementById("undoText").textContent=`Deleted "${deleted.name || "expense"}".`;
+  undoBox.className="undo show";
+  clearTimeout(undoTimer);
+  undoTimer=setTimeout(()=>{undoBox.className="undo";lastDeleted=null;},10000);
+}
+function undoDelete(){
+  if(!lastDeleted) return;
+  state.expenses.splice(Math.min(lastDeleted.index,state.expenses.length),0,lastDeleted.expense);
+  lastDeleted=null;
+  document.getElementById("undoBox").className="undo";
+  saveLocal(); render();
+}
+function getCurrentMonthSummary(f){
+  const {month, year} = getOperatingPeriod();
+  const bounds = getMonthBounds(month, year);
+  const key = periodKey(month, year);
+  const monthRow = (f.monthly || []).find(m => m.month === monthLabel(key)) || {income:0,expenses:0,net:0,endingBalance:Number(state.settings.startingBalance||0)};
+  const events = (f.events || []).filter(e => {
+    const d = parseDate(e.date);
+    return d >= bounds.start && d <= bounds.end;
+  });
+
+  let fixed = 0;
+  let variable = 0;
+  const recurringNames = new Set(
+    state.expenses
+      .filter(e => e.active !== false && ["monthly","yearly","weekly","biweekly","perPaycheck"].includes(e.frequency))
+      .map(e => normalizeName(e.name))
+  );
+
+  const categoryMap = new Map();
+
+  events.filter(e => e.amount < 0).forEach(e => {
+    const abs = Math.abs(Number(e.amount || 0));
+    if(recurringNames.has(normalizeName(e.name))) fixed += abs;
+    else variable += abs;
+    categoryMap.set(e.category, (categoryMap.get(e.category) || 0) + abs);
+  });
+
+  const lowest = events.reduce((min, e) => Math.min(min, Number(e.balance || 0)), Number.POSITIVE_INFINITY);
+  const lowestBalance = Number.isFinite(lowest) ? lowest : Number(state.settings.startingBalance || 0);
+
+  return {
+    month: month,
+    year: year,
+    monthName: periodTitle(month, year),
+    income: Number(monthRow.income || 0),
+    expenses: Number(monthRow.expenses || 0),
+    net: Number(monthRow.net || 0),
+    endingBalance: Number(monthRow.endingBalance || 0),
+    fixed,
+    variable,
+    lowestBalance,
+    eventCount: events.length,
+    categoryTotals: [...categoryMap.entries()].map(([category, amount]) => ({category, amount})).sort((a,b)=>b.amount-a.amount)
+  };
+}
+function renderMonthSummary(f){
+  const summary = getCurrentMonthSummary(f);
+  const buffer = Number(state.settings.safetyBuffer || 0);
+
+  document.getElementById("monthSummaryTitle").textContent = `${summary.monthName} cash flow`;
+  const periodTitleEl = document.getElementById("budgetPeriodTitle");
+  const periodBadge = document.getElementById("periodBadge");
+  if(periodTitleEl) periodTitleEl.textContent = `Budget Period: ${summary.monthName}`;
+  if(periodBadge) periodBadge.textContent = summary.monthName;
+  document.getElementById("monthIncome").textContent = money(summary.income, 2);
+  document.getElementById("monthExpenses").textContent = money(summary.expenses, 2);
+  document.getElementById("monthNet").textContent = money(summary.net, 2);
+  document.getElementById("monthEnding").textContent = money(summary.endingBalance, 2);
+  document.getElementById("monthFixed").textContent = money(summary.fixed, 2);
+  document.getElementById("monthVariable").textContent = money(summary.variable, 2);
+
+  document.getElementById("monthNetCard").className = "month-mini " + (summary.net >= 0 ? "good" : "bad");
+  document.getElementById("monthEndCard").className = "month-mini " + (summary.endingBalance < 0 ? "bad" : summary.endingBalance < buffer ? "warn" : "good");
+
+  const status = document.getElementById("monthSummaryStatus");
+  if(summary.lowestBalance < 0){
+    status.innerHTML = `<b style="color:#be123c;">Warning:</b> this month drops below $0. Lowest projected balance: <b>${money(summary.lowestBalance,2)}</b>.`;
+  }else if(summary.lowestBalance < buffer){
+    status.innerHTML = `<b style="color:#b45309;">Heads up:</b> this month drops below your ${money(buffer,2)} buffer. Lowest projected balance: <b>${money(summary.lowestBalance,2)}</b>.`;
+  }else{
+    status.innerHTML = `<b style="color:#047857;">Good:</b> projected to stay above your ${money(buffer,2)} buffer this month.`;
+  }
+
+  const bars = document.getElementById("monthCategoryBars");
+  bars.innerHTML = "";
+  const max = Math.max(1, ...summary.categoryTotals.map(c => c.amount));
+  const rows = summary.categoryTotals.slice(0, 6);
+
+  if(!rows.length){
+    bars.innerHTML = `<div class="subtle">No expense categories projected for this selected month.</div>`;
+    return;
+  }
+
+  rows.forEach(row => {
+    const pct = Math.max(3, Math.min(100, row.amount / max * 100));
+    const div = document.createElement("div");
+    div.className = "cat-row";
+    div.innerHTML = `
+      <b>${escapeHtml(row.category)}</b>
+      <div class="cat-track"><div class="cat-fill" style="width:${pct}%"></div></div>
+      <span style="text-align:right;font-weight:900;">${money(row.amount,0)}</span>
+    `;
+    bars.appendChild(div);
+  });
+}
+
+function render(){
+  const f=forecast(),s=state.settings;
+  document.getElementById("statIncome").textContent=money(f.totalIncome);
+  document.getElementById("statEnding").textContent=money(f.endingBalance);
+  document.getElementById("statLowest").textContent=money(f.lowestBalance);
+  document.getElementById("bufferText").textContent=`Buffer goal: ${money(s.safetyBuffer)}`;
+  document.getElementById("endingCard").className="stat "+(f.endingBalance>=0?"good":"bad");
+  document.getElementById("lowestCard").className="stat "+(f.lowestBalance<0?"bad":f.lowestBalance<Number(s.safetyBuffer||0)?"warn":"good");
+  const inc=Math.max(Number(s.income)||0,1),pct=Math.min(100,Math.max(0,f.nextBills/inc*100)),avail=Math.max(0,100-pct);
+  const leftover=(Number(s.income)||0)-f.nextBills;
+  const safeSpend=leftover-Number(s.safetyBuffer||0);
+  document.getElementById("safeSpend").textContent=money(safeSpend,2);
+  document.getElementById("nextBills").textContent=money(f.nextBills,2);
+  document.getElementById("nextLeftover").textContent=money(leftover,2);
+  document.getElementById("paycheckBar").style.width=pct+"%";
+  document.getElementById("reservedPct").textContent=`${pct.toFixed(0)}% reserved`;
+  document.getElementById("availablePct").textContent=`${avail.toFixed(0)}% available`;
+  renderValidation(); renderExpenseRows(); renderMonthSummary(f); renderChart(f.monthly); renderEvents(f.events); updateTrustBadge();
+}
+function renderChart(monthly){
+  const el=document.getElementById("monthlyChart"); el.innerHTML="";
+  const max=Math.max(1,...monthly.map(m=>Math.max(m.income,m.expenses)));
+  monthly.forEach(m=>{
+    const ih=Math.max(2,m.income/max*100),eh=Math.max(2,m.expenses/max*100);
+    const div=document.createElement("div");div.className="mcol";div.title=`${m.month}: Income ${money(m.income,2)} | Expenses ${money(m.expenses,2)}`;
+    div.innerHTML=`<div class="pair"><div class="mini income" style="height:${ih}%"></div><div class="mini expense" style="height:${eh}%"></div></div><div class="mlabel">${m.month}</div>`;
+    el.appendChild(div);
+  });
+}
+function renderEvents(events){
+  const tbody=document.getElementById("eventRows"); tbody.innerHTML="";
+  const selectedOnly = !!state.private.eventsSelectedMonthOnly;
+  const {month, year} = getOperatingPeriod();
+  const bounds = getMonthBounds(month, year);
+  const filtered = selectedOnly
+    ? events.filter(e => {
+        const d = parseDate(e.date);
+        return d >= bounds.start && d <= bounds.end;
+      })
+    : events.filter(e=>e.date>=state.settings.forecastStart).slice(0,10);
+
+  const title = document.getElementById("eventTableTitle");
+  if(title) title.textContent = selectedOnly ? `${periodTitle(month, year)} cash flow events` : "Next cash flow events";
+
+  if(!filtered.length){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td data-label="Status" colspan="5"><span class="subtle">No cash flow events found for this view.</span></td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+
+  filtered.forEach(e=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td data-label="Date"><b>${e.date}</b></td><td data-label="Item">${escapeHtml(e.name)}</td><td data-label="Category">${escapeHtml(e.category)}</td><td data-label="Amount"><span class="pill ${e.amount>=0?"plus":"minus"}">${e.amount>=0?"+":"-"}${money(Math.abs(e.amount),2)}</span></td><td data-label="Balance"><b>${money(e.balance,2)}</b></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function showDebug(obj, options={}){
+  const box=document.getElementById("debugBox"), panel=document.getElementById("diagnosticsPanel");
+  const text=typeof obj==="string"?obj:JSON.stringify(obj,null,2);
+  box.textContent=text;
+  const lower=text.toLowerCase();
+  const isFailure=text.includes('"FAIL"')||lower.includes("failed")||lower.includes("error");
+  const isPass=text.includes('"PASS"')||lower.includes("verified")||lower.includes("worked")||lower.includes("pass");
+  document.getElementById("diagStatus").textContent=isFailure?"Log has failure details":isPass?"Latest log passed":"Log updated";
+  document.getElementById("diagDot").className="dot "+(isFailure?"bad":isPass?"good":"warn");
+  document.getElementById("diagAction").textContent=options.action||"Sync/debug event";
+  document.getElementById("diagResult").textContent=isFailure?"Needs review":isPass?"Passed":"Recorded";
+  document.getElementById("diagHash").textContent=currentStateHash();
+  if(isFailure || options.openPanel) panel.open=true;
+}
+
+document.getElementById("prevPeriod").onclick=()=>{const p=getOperatingPeriod(); setOperatingPeriod(p.month-1,p.year);};
+document.getElementById("thisPeriod").onclick=()=>setOperatingPeriod(new Date().getMonth(), new Date().getFullYear());
+document.getElementById("nextPeriod").onclick=()=>{const p=getOperatingPeriod(); setOperatingPeriod(p.month+1,p.year);};
+document.getElementById("addRow").onclick=()=>{state.expenses.push({id:id(),name:"",amount:0,frequency:"monthly",dueDate:todayISO(),category:"Other",active:true});saveLocal(false);render();};
+document.getElementById("clearBlankRows").onclick=()=>{state.expenses=state.expenses.filter(e=>String(e.name||"").trim()||Number(e.amount)>0);saveLocal();render();};
+document.getElementById("pushCloud").onclick=()=>postToCloud("saveData",false);
+document.getElementById("pullCloud").onclick=pullFromCloud;
+document.getElementById("resetTemplate").onclick=()=>postToCloud("resetTemplate",false);
+document.getElementById("applySheetActions").onclick=loadTemplateRows;
+document.getElementById("runSyncQa").onclick=runSyncQa;
+document.getElementById("emailSheetCopy").onclick=emailGoogleSheetCopy;
+document.getElementById("emailBudgetReport").onclick=emailBudgetReport;
+document.getElementById("testCloudWrite").onclick=testCloudWrite;
+document.getElementById("checkCloud").onclick=checkCloudStatus;
+document.getElementById("undoDelete").onclick=undoDelete;
+document.getElementById("resetLocal").onclick=()=>{if(confirm("Reset local app data? This does not erase Google Sheets.")){state=JSON.parse(JSON.stringify(defaultState));saveLocal(false);window.addEventListener("online", () => { updateNetworkStatus(); setStatus(canSync(false) ? "Back online — ready to sync" : "Back online", "good"); });
+window.addEventListener("offline", () => { updateNetworkStatus(); setStatus("Offline — local changes only", "warn"); });
+registerServiceWorker();
+bindAll();render();updateNetworkStatus();}};
+document.getElementById("copyDebugLog").onclick=async()=>{try{await navigator.clipboard.writeText(document.getElementById("debugBox").textContent||"");setStatus("Diagnostics log copied","good");}catch(e){alert("Could not copy automatically. Select the log text and copy manually.");}};
+document.getElementById("clearDebugLog").onclick=()=>{document.getElementById("debugBox").textContent="No diagnostics yet.";document.getElementById("diagStatus").textContent="No log yet";document.getElementById("diagDot").className="dot";document.getElementById("diagAction").textContent="None";document.getElementById("diagResult").textContent="Not run";document.getElementById("diagHash").textContent="None";setQaSummary("No QA run yet. Click Run Sync QA when you want to validate app ↔ Google Sheets.","warn");};
+document.getElementById("closeDiagnostics").onclick=()=>{document.getElementById("diagnosticsPanel").open=false;};
+
+bindAll();render();
+</script>
+</body>
+</html>
